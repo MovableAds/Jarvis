@@ -22,7 +22,7 @@ public class HttpGetThermostInfo extends AsyncTask</* param */String, /* progres
 	@Override
 	protected String doInBackground(String... params) {
 		// TODO Auto-generated method stub
-		
+
 		HttpClient c = new HttpClient();
 		
 		try {

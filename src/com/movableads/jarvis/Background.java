@@ -7,12 +7,9 @@ package com.movableads.jarvis;
 
 import android.app.Service;
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -21,12 +18,13 @@ import com.movableads.jarvis.http.OrderChangeDoorStatus;
 import com.movableads.jarvis.http.OrderOnOffSmartPlug;
 import com.movableads.jarvis.http.OrderOnOffThermostat;
 import com.movableads.jarvis.http.OrderSetTemperature;
-import com.movableads.jarvis.http.OrderType;
 import com.thalmic.myo.AbstractDeviceListener;
 import com.thalmic.myo.DeviceListener;
 import com.thalmic.myo.Hub;
 import com.thalmic.myo.Myo;
 import com.thalmic.myo.Pose;
+
+
 
 public class Background extends Service {
 
@@ -231,7 +229,8 @@ public class Background extends Service {
 				Intent intent = new Intent (Define.MYO_RECEIVER, null);
 		        intent.putExtra("status", "DOOR");
 		        sendBroadcast(intent);*/
-				mApp.changeDoor();
+				if(result.equals(HttpReturnCode.SUCCESS))
+					mApp.changeDoor();
 			}
 		});
     }
@@ -244,7 +243,7 @@ public class Background extends Service {
 			public void onComplete(String result) {
 				// TODO Auto-generated method stub
 				Log.d("api", "onOffSmartPlug - " + result);
-				if(result.equals(HttpReturnCode.SUCCESS) || result.equals(HttpReturnCode.FAIL)){
+				if(result.equals(HttpReturnCode.SUCCESS)){
 					if(Global._smartPlugOnOffStatus == Define.SMART_PLUG_OFF){
 						Global._smartPlugOnOffStatus = Define.SMART_PLUG_ON;
 					}

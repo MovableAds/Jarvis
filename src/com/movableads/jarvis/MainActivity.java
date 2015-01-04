@@ -9,14 +9,7 @@ import com.movableads.jarvis.http.HttpGetThermostInfo;
 import com.movableads.jarvis.http.HttpInit;
 import com.movableads.jarvis.http.HttpReturnCode;
 import com.movableads.jarvis.http.OrderChangeDoorStatus;
-import com.movableads.jarvis.http.OrderOnOffThermostat;
-import com.movableads.jarvis.http.OrderSetTemperature;
-import com.movableads.jarvis.http.OrderType;
-import com.thalmic.myo.AbstractDeviceListener;
-import com.thalmic.myo.DeviceListener;
-import com.thalmic.myo.Hub;
-import com.thalmic.myo.Myo;
-import com.thalmic.myo.Pose;
+import com.movableads.jarvis.http.OrderOnOffSmartPlug;
 import com.thalmic.myo.scanner.ScanActivity;
 
 import android.app.Activity;
@@ -29,10 +22,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Message;
-import android.os.Messenger;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -40,10 +29,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 
 public class MainActivity extends Activity {
@@ -159,8 +145,10 @@ public class MainActivity extends Activity {
 				
 				Global.latitude = location.getLatitude();
 				Global.longitude = location.getLongitude();
+				Global.latitude = 36.08;
+				Global.longitude = -115.17;
 				mLocationManager.removeUpdates(mLocationListener);
-				getForecast();
+				//getForecast();
 			}
 		}
 	};
@@ -285,6 +273,7 @@ public class MainActivity extends Activity {
 			public void onComplete(String result) {
 				// TODO Auto-generated method stub
 				Log.d("api", "getToken - " + result);
+				getForecast();
 			}
 		});
     }
@@ -391,5 +380,60 @@ public class MainActivity extends Activity {
     public void refresh(){
     	isRefresh = true;
     	getForecast();
+    }
+    
+    
+    public void clickDoor(View v){
+    	if(Global.isDoorLocked){
+			changeDoorStatus("unlock");
+		}
+		else{
+			changeDoorStatus("lock");
+		}
+    }
+    
+    public void clickLight(View v){
+    	if(Global._smartPlugOnOffStatus == Define.SMART_PLUG_OFF){
+			onOffSmartPlug("on");
+		}
+		else{
+			onOffSmartPlug("off");
+		}
+    }
+    
+    
+    
+    private void changeDoorStatus(String value){
+    	OrderChangeDoorStatus call = new OrderChangeDoorStatus(value);
+    	call.setOnRequestComplete(new OrderChangeDoorStatus.OnRequest() {
+			@Override
+			public void onComplete(String result) {
+				// TODO Auto-generated method stub
+				if(result.equals(HttpReturnCode.SUCCESS))
+					getDoorStatus();
+			}
+		});
+    }
+    
+    
+    private void onOffSmartPlug(String value){
+    	OrderOnOffSmartPlug call = new OrderOnOffSmartPlug(value);
+    	call.setOnRequestComplete(new OrderOnOffSmartPlug.OnRequest() {
+			@Override
+			public void onComplete(String result) {
+				// TODO Auto-generated method stub
+				Log.d("api", "onOffSmartPlug - " + result);
+				if(result.equals(HttpReturnCode.SUCCESS)){
+					if(Global._smartPlugOnOffStatus == Define.SMART_PLUG_OFF){
+						Global._smartPlugOnOffStatus = Define.SMART_PLUG_ON;
+					}
+					else{
+						Global._smartPlugOnOffStatus = Define.SMART_PLUG_OFF;
+					}
+					
+					getSmartPlugStatus();
+				}
+			}
+		});
     }
 }

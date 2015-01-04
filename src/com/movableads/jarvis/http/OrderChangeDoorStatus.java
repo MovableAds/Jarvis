@@ -1,16 +1,10 @@
 package com.movableads.jarvis.http;
 
-import java.util.Vector;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
-
-import com.movableads.jarvis.Global;
-
-
 import android.os.AsyncTask;
 import android.util.Log;
+
+
 
 public class OrderChangeDoorStatus extends AsyncTask</* param */String, /* progress */Object, /* result */String> {
 

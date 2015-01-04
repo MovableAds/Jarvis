@@ -53,21 +53,4 @@ public class ApiUrl {
 		return String.format("%s%s/devices/%s/%s/%.0f", HOST, Global.tokenID, Global.DEVICE_THERMOSTAT, status, temperature);
 	}
 	
-	
-	
-	
-	
-	
-	
-	/*
-	static public String getDoorStatus(){
-		return String.format("%s/downTemperature", HOST);
-		//return HOST;
-	}
-	
-	static public String getTemperatureStatus(){
-		return String.format("%s/downTemperature", HOST);
-		//return HOST;
-	}*/
-	
 }

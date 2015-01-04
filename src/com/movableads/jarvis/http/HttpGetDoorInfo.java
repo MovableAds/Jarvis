@@ -1,10 +1,6 @@
 package com.movableads.jarvis.http;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
-
-import com.movableads.jarvis.Define;
-import com.movableads.jarvis.Global;
 import android.os.AsyncTask;
 import android.util.Log;
 

@@ -1,14 +1,11 @@
 package com.movableads.jarvis.http;
 
-import java.net.URLEncoder;
 
 import org.json.JSONObject;
-
-import com.movableads.jarvis.http.OrderChangeDoorStatus.OnRequest;
-
-
 import android.os.AsyncTask;
 import android.util.Log;
+
+
 
 public class OrderOnOffThermostat extends AsyncTask</* param */String, /* progress */Object, /* result */String> {
 

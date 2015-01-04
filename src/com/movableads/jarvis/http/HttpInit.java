@@ -1,13 +1,7 @@
 package com.movableads.jarvis.http;
 
-import java.util.Vector;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-import org.json.JSONArray;
 import org.json.JSONObject;
-
-import com.movableads.jarvis.Define;
 import com.movableads.jarvis.Global;
 
 

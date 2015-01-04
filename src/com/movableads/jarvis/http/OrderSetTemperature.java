@@ -1,12 +1,10 @@
 package com.movableads.jarvis.http;
 
 import org.json.JSONObject;
-
-import com.movableads.jarvis.http.OrderChangeDoorStatus.OnRequest;
-
-
 import android.os.AsyncTask;
 import android.util.Log;
+
+
 
 public class OrderSetTemperature extends AsyncTask</* param */String, /* progress */Object, /* result */String> {
 
