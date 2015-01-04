@@ -6,12 +6,14 @@ import com.movableads.jarvis.http.OrderChangeDoorStatus.OnRequest;
 
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 public class OrderSetTemperature extends AsyncTask</* param */String, /* progress */Object, /* result */String> {
 
-	public OrderSetTemperature(String value) {
+	public OrderSetTemperature(String status, Double temperature) {
 		// TODO Auto-generated constructor stub
-		String url = "";
+		String url = ApiUrl.setThermostatTemperature(status, temperature);
+		Log.d("api", String.format("OrderSetTemperature url = %s", url));
 		execute(url);
 	}
 	
@@ -19,23 +21,26 @@ public class OrderSetTemperature extends AsyncTask</* param */String, /* progres
 	protected String doInBackground(String... params) {
 		// TODO Auto-generated method stub
 		
+		String result = HttpReturnCode.SUCCESS;
 		HttpClient c = new HttpClient();
-		JSONObject obj = null;
+		
 		try {
-			obj = c.getHttpJson(params[0]);
-			String state = obj.getString("state");
-			String url   = obj.getString("url");
-			int    remain = obj.getInt("remain_time");
-			String msg   = obj.getString("msg");
+			JSONObject obj = c.postData2(params[0], null);
 			
-			publishProgress(state, url, remain, msg);
+			String status = obj.getString("status");
+			if(!status.equals("0")){
+				result = HttpReturnCode.FAIL;
+			}
+			
+			Log.d("api", String.format("set temperature = %s", obj.toString()));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			Log.d("api", "exception");
 			return HttpReturnCode.EXCEPTION;
 		}
 		
-		return HttpReturnCode.SUCCESS;
+		return result;
 	}
 	
 	

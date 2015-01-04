@@ -15,6 +15,7 @@ public class Global {
 	static public String authToken = "";
 	
 	// temp
+	/*
 	static public String USER_ID = "553474464";
 	static public String PASSWD = "NO-PASSWD";
 	static public String DOMAIN = "DL";
@@ -23,6 +24,15 @@ public class Global {
 	static public String DEVICE_DOOR_LOCK = "DL00000005";
 	static public String DEVICE_THERMOSTAT =  "DT00000004";
 	static public String DEVICE_SMART_PLUG = "PE00000002";
+	*/
+	static public String USER_ID = "";
+	static public String PASSWD = "";
+	static public String DOMAIN = "";
+	static public String APPKEY = "";
+	
+	static public String DEVICE_DOOR_LOCK = "";
+	static public String DEVICE_THERMOSTAT =  "";
+	static public String DEVICE_SMART_PLUG = "";
 	
 	static public Double latitude = 0.0;
 	static public Double longitude = 0.0;

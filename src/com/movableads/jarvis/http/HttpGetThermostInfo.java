@@ -26,7 +26,6 @@ public class HttpGetThermostInfo extends AsyncTask</* param */String, /* progres
 		HttpClient c = new HttpClient();
 		
 		try {
-			//JSONObject obj = c.postData2(params[0], null);
 			JSONObject obj = c.getHttpJson2(params[0]);
 			Log.d("api", obj.toString());
 			
@@ -38,18 +37,26 @@ public class HttpGetThermostInfo extends AsyncTask</* param */String, /* progres
 				JSONArray ary = objContents.getJSONArray("attributes");
 				for(int i = 0; i < ary.length(); i++){
 					if(Global._thermostatCoolOrHeatStatus == Define.THERMOSTAT_COOL){
-						JSONObject obj_ = ary.getJSONObject(i);
-						if(obj_.getString("label").equals("cool-setpoint")){
-							curThermostatTemperature = obj_.getString("value");
-							break;
+						JSONObject obj1 = ary.getJSONObject(i);
+						if(obj1.getString("label").equals("cool-setpoint")){
+							curThermostatTemperature = obj1.getString("value");
+							//break;
 						}	
 					}
 					else{
-						JSONObject obj_ = ary.getJSONObject(i);
-						if(obj_.getString("label").equals("heat-setpoint")){
-							curThermostatTemperature = obj_.getString("value");
-							break;
+						JSONObject obj2 = ary.getJSONObject(i);
+						if(obj2.getString("label").equals("heat-setpoint")){
+							curThermostatTemperature = obj2.getString("value");
+							//break;
 						}	
+					}
+					
+					JSONObject obj3 = ary.getJSONObject(i);
+					//Log.d("api", String.format("obj3 = %s", obj3.toString()));
+					if(obj3.getString("label").equals("temperature")){
+						String temperature = obj3.getString("value");
+						Double t = Double.parseDouble(temperature) / 2.0 - 40;
+						publishProgress(Double.toString(t));
 					}
 				}
 				
@@ -89,6 +96,8 @@ public class HttpGetThermostInfo extends AsyncTask</* param */String, /* progres
 	protected void onProgressUpdate(Object... values) {
 		// TODO Auto-generated method stub
 		super.onProgressUpdate(values);
+		if(onReqRecv != null)
+			onReqRecv.onTemperature(values[0].toString());
 	}
 	
 	
@@ -101,6 +110,7 @@ public class HttpGetThermostInfo extends AsyncTask</* param */String, /* progres
 	
 	protected OnRequest onReqRecv;
 	public interface OnRequest{ 
+		void onTemperature(String temperature);
 		void onComplete(String result); 										
 	}
 	public void setOnRequestComplete(OnRequest callback){ 

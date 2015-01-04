@@ -19,7 +19,7 @@ import android.widget.Toast;
 import com.movableads.jarvis.http.HttpReturnCode;
 import com.movableads.jarvis.http.OrderChangeDoorStatus;
 import com.movableads.jarvis.http.OrderOnOffSmartPlug;
-import com.movableads.jarvis.http.OrderOffThermostat;
+import com.movableads.jarvis.http.OrderOnOffThermostat;
 import com.movableads.jarvis.http.OrderSetTemperature;
 import com.movableads.jarvis.http.OrderType;
 import com.thalmic.myo.AbstractDeviceListener;
@@ -138,26 +138,29 @@ public class Background extends Service {
     	
     	if(myoEvent.equals(Pose.DOUBLE_TAP)){
     		if(!Global._useThermostatControl){
-    			//Toast.makeText(getApplicationContext(), "온도 조절 가능", Toast.LENGTH_SHORT).show();
+    			Toast.makeText(getApplicationContext(), "온도 조절 가능", Toast.LENGTH_SHORT).show();
     		}
     		Global._useThermostatControl = true;
-    		Toast.makeText(getApplicationContext(), "꺼라꺼라", Toast.LENGTH_SHORT).show();
-    		offThermostat();
 		}
 		else if(myoEvent.equals(Pose.FINGERS_SPREAD)){
 			if(Global._useThermostatControl){
 				// 냉난방 장치 껐다켰다 해라.
 				if(Global._thermostatOnOffStatus == Define.THERMOSTAT_OFF){
-					//Toast.makeText(getApplicationContext(), "thermostat on", Toast.LENGTH_SHORT).show();
-					//onOffThermostat("on");
+					Toast.makeText(getApplicationContext(), "thermostat on", Toast.LENGTH_SHORT).show();
+					if(Global._thermostatCoolOrHeatStatus == Define.THERMOSTAT_COOL){
+						onOffThermostat("cool");	
+					}
+					else{
+						onOffThermostat("heat");
+					}
 				}
 				else{
-					//Toast.makeText(getApplicationContext(), "thermostat off", Toast.LENGTH_SHORT).show();
-					//offThermostat();
+					Toast.makeText(getApplicationContext(), "thermostat off", Toast.LENGTH_SHORT).show();
+					onOffThermostat("off");
 				}
 			}
 			else{
-				// 전등 껐다켰다 해라.
+				// smart-plug 껐다켰다 해라.
 				if(Global._smartPlugOnOffStatus == Define.SMART_PLUG_OFF){
 					Toast.makeText(getApplicationContext(), "smartPlug on", Toast.LENGTH_SHORT).show();
 					onOffSmartPlug("on");
@@ -171,6 +174,7 @@ public class Background extends Service {
 		else if(myoEvent.equals(Pose.WAVE_IN)){
 			if(Global._useThermostatControl){
 				//	온도 내려라
+				setTemperature(false);
 				Toast.makeText(getApplicationContext(), "온도 내려라", Toast.LENGTH_SHORT).show();
 				mHandler.removeMessages(CONTROL_THERMOSTAT);
 				mHandler.sendEmptyMessageDelayed(CONTROL_THERMOSTAT, 5000);
@@ -184,6 +188,7 @@ public class Background extends Service {
 		else if(myoEvent.equals(Pose.WAVE_OUT)){
 			if(Global._useThermostatControl){
 				// 온도 올려라.
+				setTemperature(true);
 				Toast.makeText(getApplicationContext(), "온도 올려라", Toast.LENGTH_SHORT).show();
 				mHandler.removeMessages(CONTROL_THERMOSTAT);
 				mHandler.sendEmptyMessageDelayed(CONTROL_THERMOSTAT, 5000);
@@ -236,9 +241,9 @@ public class Background extends Service {
 		});
     }
     
-    private void offThermostat(){
-    	OrderOffThermostat call = new OrderOffThermostat();
-    	call.setOnRequestComplete(new OrderOffThermostat.OnRequest() {
+    private void onOffThermostat(String value){
+    	OrderOnOffThermostat call = new OrderOnOffThermostat(value);
+    	call.setOnRequestComplete(new OrderOnOffThermostat.OnRequest() {
 			@Override
 			public void onComplete(String result) {
 				// TODO Auto-generated method stub
@@ -251,6 +256,25 @@ public class Background extends Service {
 						Global._thermostatOnOffStatus = Define.THERMOSTAT_OFF;
 					}
 				}
+			}
+		});
+    }
+    
+    
+    private void setTemperature(boolean isUp){
+    	Double dTemperature = 0.0;
+    	if(isUp){
+    		dTemperature = ++Global.currentThermostatTemperature;
+    	}
+    	else{
+    		dTemperature = --Global.currentThermostatTemperature;
+    	}
+    	String status = Global._thermostatCoolOrHeatStatus == Define.THERMOSTAT_COOL ? "cool-setpoint" : "heat-setpoint";
+    	OrderSetTemperature temperature = new OrderSetTemperature(status, dTemperature);
+    	temperature.setOnRequestComplete(new OrderSetTemperature.OnRequest() {
+			@Override
+			public void onComplete(String result) {
+				// TODO Auto-generated method stub	
 			}
 		});
     }

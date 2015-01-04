@@ -1,6 +1,12 @@
 package com.movableads.jarvis.http;
 
+import java.util.Vector;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONArray;
 import org.json.JSONObject;
+
 import com.movableads.jarvis.Define;
 import com.movableads.jarvis.Global;
 
@@ -8,12 +14,11 @@ import com.movableads.jarvis.Global;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class HttpGetForecast extends AsyncTask</* param */String, /* progress */Object, /* result */String> {
+public class HttpInit extends AsyncTask</* param */String, /* progress */Object, /* result */String> {
 
-	public HttpGetForecast() {
+	public HttpInit() {
 		// TODO Auto-generated constructor stub
-		String url = ApiUrl.forecast(Global.latitude, Global.longitude);
-		Log.d("api", String.format("HttpGetForecast url = %s", url));
+		String url = ApiUrl.init();
 		execute(url);
 	}
 	
@@ -22,21 +27,22 @@ public class HttpGetForecast extends AsyncTask</* param */String, /* progress */
 	protected String doInBackground(String... params) {
 		// TODO Auto-generated method stub
 		
+		
 		HttpClient c = new HttpClient();
 		
 		try {
 			JSONObject obj = c.getHttpJson(params[0]);
-			String timezone = obj.getString("timezone");
-			JSONObject curObj = obj.getJSONObject("currently");
-			Double temperature = curObj.getDouble("temperature");
-			publishProgress(timezone, Double.toString(temperature));
 			
-			if(temperature < 50.00){
-				Global._thermostatCoolOrHeatStatus = Define.THERMOSTAT_HEAT;
-			}
-			else{
-				Global._thermostatCoolOrHeatStatus = Define.THERMOSTAT_COOL;
-			}
+			Global.USER_ID = obj.getString("USER_ID");
+			Global.PASSWD = obj.getString("PASSWD");
+			Global.DOMAIN = obj.getString("DOMAIN");
+			Global.APPKEY = obj.getString("APPKEY");
+			
+			Global.DEVICE_DOOR_LOCK = obj.getString("DEVICE_DOOR_LOCK");
+			Global.DEVICE_THERMOSTAT =  obj.getString("DEVICE_THERMOSTAT");
+			Global.DEVICE_SMART_PLUG = obj.getString("DEVICE_SMART_PLUG");
+			
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -68,8 +74,6 @@ public class HttpGetForecast extends AsyncTask</* param */String, /* progress */
 	protected void onProgressUpdate(Object... values) {
 		// TODO Auto-generated method stub
 		super.onProgressUpdate(values);
-		if(onReqRecv != null)
-			onReqRecv.onLocation(values[0].toString(), values[1].toString());
 	}
 	
 	
@@ -81,12 +85,10 @@ public class HttpGetForecast extends AsyncTask</* param */String, /* progress */
 	
 	
 	protected OnRequest onReqRecv;
-	public interface OnRequest{
-		void onLocation(String location, String temperature);
+	public interface OnRequest{ 
 		void onComplete(String result); 										
 	}
 	public void setOnRequestComplete(OnRequest callback){ 
 		onReqRecv = callback;
 	}
-	
 }

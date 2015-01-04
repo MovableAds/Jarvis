@@ -10,11 +10,11 @@ import com.movableads.jarvis.http.OrderChangeDoorStatus.OnRequest;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class OrderOffThermostat extends AsyncTask</* param */String, /* progress */Object, /* result */String> {
+public class OrderOnOffThermostat extends AsyncTask</* param */String, /* progress */Object, /* result */String> {
 
-	public OrderOffThermostat() {
+	public OrderOnOffThermostat(String value) {
 		// TODO Auto-generated constructor stub
-		String url = ApiUrl.offThermostat();
+		String url = ApiUrl.onOffThermostat(value);
 		Log.d("api", String.format("OrderOffThermostat url = %s", url));
 		//url = URLEncoder.encode(url);
 		execute(url);
