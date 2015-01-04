@@ -25,6 +25,7 @@ public class Global {
 	static public String DEVICE_THERMOSTAT =  "DT00000004";
 	static public String DEVICE_SMART_PLUG = "PE00000002";
 	*/
+	
 	static public String USER_ID = "";
 	static public String PASSWD = "";
 	static public String DOMAIN = "";
@@ -38,4 +39,6 @@ public class Global {
 	static public Double longitude = 0.0;
 	
 	static public Double currentThermostatTemperature = 0.0;
+	
+	static public boolean isDoorLocked = false;
 }

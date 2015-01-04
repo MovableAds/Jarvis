@@ -27,6 +27,7 @@ import android.content.IntentFilter;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -47,6 +48,8 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
+	private boolean isRefresh = true;
+	
 	private LocationManager mLocationManager = null;
 	private MyoReceiver myoReceiver = new MyoReceiver();
 	
@@ -59,12 +62,24 @@ public class MainActivity extends Activity {
 	private TextView mTxvDoorMsg = null;
 	private TextView mTxvPlugMsg = null;
 	
+	private App mApp = null;
+	
+	private MediaPlayer mSndOpenDoor = null;
+    private MediaPlayer mSndClosedDoor = null;
+    private MediaPlayer mSndLightOn = null;
+    private MediaPlayer mSndLightOff = null;
+	
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mApp = (App)getApplication();
+        mApp.mMain = this;
         
         registerMyoReceiver();
+        startService(new Intent(MainActivity.this, Background.class));
+        
         mTxvMessage = (TextView)findViewById(R.id.progress_msg);
         mTxvMessage.setText("Loading ...");
         
@@ -75,11 +90,35 @@ public class MainActivity extends Activity {
         mImgSmartPlug = (ImageView)findViewById(R.id.plug);
         mTxvDoorMsg = (TextView)findViewById(R.id.door_msg);
         mTxvPlugMsg = (TextView)findViewById(R.id.plug_msg);
-        
+        initSound();
         init();
         
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 1, mLocationListener);
+        mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 1, mLocationListener);    
+    }
+    
+    
+    private void initSound(){
+
+        if(mSndOpenDoor == null){
+            int resID = getResources().getIdentifier("door_is_open", "raw", getPackageName());
+            mSndOpenDoor = MediaPlayer.create(getApplicationContext(), resID);
+        }
+
+        if(mSndClosedDoor == null){
+            int resID = getResources().getIdentifier("door_is_locked", "raw", getPackageName());
+            mSndClosedDoor = MediaPlayer.create(getApplicationContext(), resID);
+        }
+
+        if(mSndLightOn == null){
+            int resID = getResources().getIdentifier("smartplug_on", "raw", getPackageName());
+            mSndLightOn = MediaPlayer.create(getApplicationContext(), resID);
+        }
+
+        if(mSndLightOff == null){
+            int resID = getResources().getIdentifier("smartplug_off", "raw", getPackageName());
+            mSndLightOff = MediaPlayer.create(getApplicationContext(), resID);
+        }
     }
     
     
@@ -91,7 +130,6 @@ public class MainActivity extends Activity {
 			public void onComplete(String result) {
 				// TODO Auto-generated method stub
 				getToken();
-				startService(new Intent(MainActivity.this, Background.class));
 			}
 		});
     }
@@ -121,6 +159,7 @@ public class MainActivity extends Activity {
 				
 				Global.latitude = location.getLatitude();
 				Global.longitude = location.getLongitude();
+				mLocationManager.removeUpdates(mLocationListener);
 				getForecast();
 			}
 		}
@@ -135,7 +174,7 @@ public class MainActivity extends Activity {
 			public void onComplete(String result) {
 				// TODO Auto-generated method stub
 				if(result.equals(HttpReturnCode.SUCCESS)){
-					mLocationManager.removeUpdates(mLocationListener);
+					//mLocationManager.removeUpdates(mLocationListener);
 					getCurrentThermostInfo();
 				}
 			}
@@ -144,7 +183,7 @@ public class MainActivity extends Activity {
 			public void onLocation(String location, String temperature) {
 				// TODO Auto-generated method stub
 				mBtnLocation.setText(location);
-				mBtnOutside.setText("Outside\n" + temperature + " ℉");
+				mBtnOutside.setText("Outside\n" + temperature + "℉");
 			}
 		});
 	}
@@ -157,7 +196,8 @@ public class MainActivity extends Activity {
 			@Override
 			public void onTemperature(String temperature) {
 				// TODO Auto-generated method stub
-				mBtnInside.setText("Inside\n" + temperature + " ℃");
+				//mBtnInside.setText("Inside\n" + temperature + " ℃");
+				mBtnInside.setText("Inside\n" + temperature + "℉");
 			}
 			
 			@Override
@@ -170,7 +210,7 @@ public class MainActivity extends Activity {
 	}
 	
 	
-	private void getDoorStatus(){
+	public void getDoorStatus(){
 		mTxvMessage.setText("Get door status ...");
 		HttpGetDoorInfo info = new HttpGetDoorInfo();
 		info.setOnRequestComplete(new HttpGetDoorInfo.OnRequest() {
@@ -178,13 +218,19 @@ public class MainActivity extends Activity {
 			public void onStatus(String status) {
 				// TODO Auto-generated method stub
 				//mBtnDoor.setText("Door - " + status);
-				if(status.equals("unlock")){
+				if(status.equals("lock")){
+					Global.isDoorLocked = true;
 					mImgDoor.setImageResource(R.drawable.door_closed);
 					mTxvDoorMsg.setText("Door closed");
+					if(!mSndClosedDoor.isPlaying() && !isRefresh)
+						mSndClosedDoor.start();
 				}
 				else{
-					mImgDoor.setImageResource(R.drawable.door_closed);
+					Global.isDoorLocked = false;
+					mImgDoor.setImageResource(R.drawable.door_open);
 					mTxvDoorMsg.setText("Door open");
+					if(!mSndOpenDoor.isPlaying() && !isRefresh)
+						mSndOpenDoor.start();
 				}
 			}
 			
@@ -198,7 +244,7 @@ public class MainActivity extends Activity {
 	}
 	
 	
-	private void getSmartPlugStatus(){
+	public void getSmartPlugStatus(){
 		mTxvMessage.setText("Get smart plug status ...");
 		HttpGetSmartPlugInfo info = new HttpGetSmartPlugInfo();
 		info.setOnRequestComplete(new HttpGetSmartPlugInfo.OnRequest() {
@@ -209,10 +255,16 @@ public class MainActivity extends Activity {
 				if(status.equals("on")){
 					mImgSmartPlug.setImageResource(R.drawable.light_on);
 					mTxvPlugMsg.setText("Light on");
+					/*
+					if(!mSndLightOn.isPlaying() && !isRefresh)
+						mSndLightOn.start();*/
 				}
 				else{
 					mImgSmartPlug.setImageResource(R.drawable.light_off);
 					mTxvPlugMsg.setText("Light off");
+					/*
+					if(!mSndLightOff.isPlaying() && !isRefresh)
+						mSndLightOff.start();*/
 				}
 			}
 			
@@ -220,6 +272,7 @@ public class MainActivity extends Activity {
 			public void onComplete(String result) {
 				// TODO Auto-generated method stub
 				mTxvMessage.setText("2015 AT&T Developer Summit");
+				isRefresh = false;
 			}
 		});
 	}
@@ -262,7 +315,14 @@ public class MainActivity extends Activity {
     	  
     	@Override
     	public void onReceive(Context context, Intent intent) {
-    		String myoEvent = intent.getStringExtra("myoEvent");
+    		String status = intent.getStringExtra("status");
+    		if(status.equals("DOOR")){
+    			getDoorStatus();
+    		}
+			else if(status.equals("PLUG")){
+				getSmartPlugStatus();
+			}
+    		
     		/*
     		if(myoEvent.equals(Pose.DOUBLE_TAP.toString())){
     		}
@@ -298,7 +358,38 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
     	// TODO Auto-generated method stub
     	super.onDestroy();
+    	if(mSndClosedDoor != null){
+    		mSndClosedDoor.stop();
+    		mSndClosedDoor.release();
+    		mSndClosedDoor = null;
+        }
+    	
+    	if(mSndOpenDoor != null){
+    		mSndOpenDoor.stop();
+    		mSndOpenDoor.release();
+    		mSndOpenDoor = null;
+        }
+    	
+    	if(mSndLightOff != null){
+    		mSndLightOff.stop();
+    		mSndLightOff.release();
+    		mSndLightOff = null;
+        }
+    	
+    	if(mSndLightOn != null){
+    		mSndLightOn.stop();
+    		mSndLightOn.release();
+    		mSndLightOn = null;
+        }
+    	
     	mLocationManager.removeUpdates(mLocationListener);
     	stopService(new Intent(this, Background.class));
+    }
+    
+    
+    
+    public void refresh(){
+    	isRefresh = true;
+    	getForecast();
     }
 }

@@ -55,8 +55,9 @@ public class HttpGetThermostInfo extends AsyncTask</* param */String, /* progres
 					//Log.d("api", String.format("obj3 = %s", obj3.toString()));
 					if(obj3.getString("label").equals("temperature")){
 						String temperature = obj3.getString("value");
-						Double t = Double.parseDouble(temperature) / 2.0 - 40;
-						publishProgress(Double.toString(t));
+						Double cc = Double.parseDouble(temperature) / 2.0 - 40;
+						Double ff = cc * 2 + 30;
+						publishProgress(Double.toString(ff));
 					}
 				}
 				

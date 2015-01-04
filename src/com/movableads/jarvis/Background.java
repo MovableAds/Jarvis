@@ -34,6 +34,7 @@ public class Background extends Service {
 	final private int CONTROL_THERMOSTAT = 1;
 	
 	private boolean mSkipEvent = false; 
+	private App mApp = null;
 	
 	
     // Classes that inherit from AbstractDeviceListener can be used to receive events from Myo devices.
@@ -100,6 +101,8 @@ public class Background extends Service {
     public void onCreate() {
         super.onCreate();
 
+        mApp = (App)getApplication();
+        
         // First, we initialize the Hub singleton with an application identifier.
         Hub hub = Hub.getInstance();
         if (!hub.init(this, getPackageName())) {
@@ -131,22 +134,19 @@ public class Background extends Service {
     private void changed(Pose myoEvent) {
     	Log.d("jarvis", myoEvent.toString());
     	
-    	/*
-        Intent intent = new Intent (Define.MYO_RECEIVER, null);
-        intent.putExtra("myoEvent", text); 
-        sendBroadcast(intent);*/
-    	
     	if(myoEvent.equals(Pose.DOUBLE_TAP)){
     		if(!Global._useThermostatControl){
-    			Toast.makeText(getApplicationContext(), "온도 조절 가능", Toast.LENGTH_SHORT).show();
+    			//Toast.makeText(getApplicationContext(), "온도 조절 가능", Toast.LENGTH_SHORT).show();
     		}
-    		Global._useThermostatControl = true;
+    		//Global._useThermostatControl = true;
+    		Global._useThermostatControl = false;
+    		mApp.refresh();
 		}
 		else if(myoEvent.equals(Pose.FINGERS_SPREAD)){
 			if(Global._useThermostatControl){
 				// 냉난방 장치 껐다켰다 해라.
 				if(Global._thermostatOnOffStatus == Define.THERMOSTAT_OFF){
-					Toast.makeText(getApplicationContext(), "thermostat on", Toast.LENGTH_SHORT).show();
+					//Toast.makeText(getApplicationContext(), "thermostat on", Toast.LENGTH_SHORT).show();
 					if(Global._thermostatCoolOrHeatStatus == Define.THERMOSTAT_COOL){
 						onOffThermostat("cool");	
 					}
@@ -155,33 +155,34 @@ public class Background extends Service {
 					}
 				}
 				else{
-					Toast.makeText(getApplicationContext(), "thermostat off", Toast.LENGTH_SHORT).show();
+					//Toast.makeText(getApplicationContext(), "thermostat off", Toast.LENGTH_SHORT).show();
 					onOffThermostat("off");
 				}
 			}
 			else{
 				// smart-plug 껐다켰다 해라.
 				if(Global._smartPlugOnOffStatus == Define.SMART_PLUG_OFF){
-					Toast.makeText(getApplicationContext(), "smartPlug on", Toast.LENGTH_SHORT).show();
+					//Toast.makeText(getApplicationContext(), "smartPlug on", Toast.LENGTH_SHORT).show();
 					onOffSmartPlug("on");
 				}
 				else{
-					Toast.makeText(getApplicationContext(), "smartPlug off", Toast.LENGTH_SHORT).show();
+					//Toast.makeText(getApplicationContext(), "smartPlug off", Toast.LENGTH_SHORT).show();
 					onOffSmartPlug("off");
 				}
 			}			
 		}
+    	/*
 		else if(myoEvent.equals(Pose.WAVE_IN)){
 			if(Global._useThermostatControl){
 				//	온도 내려라
 				setTemperature(false);
-				Toast.makeText(getApplicationContext(), "온도 내려라", Toast.LENGTH_SHORT).show();
+				//Toast.makeText(getApplicationContext(), "온도 내려라", Toast.LENGTH_SHORT).show();
 				mHandler.removeMessages(CONTROL_THERMOSTAT);
 				mHandler.sendEmptyMessageDelayed(CONTROL_THERMOSTAT, 5000);
 			}
 			else{ 
 				//	문 닫아라.
-				Toast.makeText(getApplicationContext(), "문 닫아라", Toast.LENGTH_SHORT).show();
+				//Toast.makeText(getApplicationContext(), "문 닫아라", Toast.LENGTH_SHORT).show();
 				changeDoorStatus("lock");
 			}
 		}
@@ -189,17 +190,25 @@ public class Background extends Service {
 			if(Global._useThermostatControl){
 				// 온도 올려라.
 				setTemperature(true);
-				Toast.makeText(getApplicationContext(), "온도 올려라", Toast.LENGTH_SHORT).show();
+				//Toast.makeText(getApplicationContext(), "온도 올려라", Toast.LENGTH_SHORT).show();
 				mHandler.removeMessages(CONTROL_THERMOSTAT);
 				mHandler.sendEmptyMessageDelayed(CONTROL_THERMOSTAT, 5000);
 			}
 			else{
 				// 문 열어라.
-				Toast.makeText(getApplicationContext(), "문 열어라", Toast.LENGTH_SHORT).show();
+				//Toast.makeText(getApplicationContext(), "문 열어라", Toast.LENGTH_SHORT).show();
 				changeDoorStatus("unlock");
 			}
-		}
+		}*/
 		else if(myoEvent.equals(Pose.FIST)){
+			if(Global.isDoorLocked){
+				Toast.makeText(getApplicationContext(), "open door", Toast.LENGTH_SHORT).show();
+				changeDoorStatus("unlock");
+			}
+			else{
+				Toast.makeText(getApplicationContext(), "close door", Toast.LENGTH_SHORT).show();
+				changeDoorStatus("lock");
+			}
 		}
 		else if(myoEvent.equals(Pose.REST)){
 		}
@@ -209,7 +218,6 @@ public class Background extends Service {
     }
     
     
-    
     private void changeDoorStatus(String value){
     	OrderChangeDoorStatus call = new OrderChangeDoorStatus(value);
     	call.setOnRequestComplete(new OrderChangeDoorStatus.OnRequest() {
@@ -217,6 +225,13 @@ public class Background extends Service {
 			public void onComplete(String result) {
 				// TODO Auto-generated method stub
 				Log.d("api", "changeDoorStatus - " + result);
+				
+				/*
+				Toast.makeText(getApplicationContext(), "DOOR", Toast.LENGTH_SHORT).show();
+				Intent intent = new Intent (Define.MYO_RECEIVER, null);
+		        intent.putExtra("status", "DOOR");
+		        sendBroadcast(intent);*/
+				mApp.changeDoor();
 			}
 		});
     }
@@ -236,6 +251,13 @@ public class Background extends Service {
 					else{
 						Global._smartPlugOnOffStatus = Define.SMART_PLUG_OFF;
 					}
+					
+					/*
+					Toast.makeText(getApplicationContext(), "PLUG", Toast.LENGTH_SHORT).show();
+					Intent intent = new Intent (Define.MYO_RECEIVER, null);
+			        intent.putExtra("status", "PLUG");
+			        sendBroadcast(intent);*/
+					mApp.changePlug();
 				}
 			}
 		});

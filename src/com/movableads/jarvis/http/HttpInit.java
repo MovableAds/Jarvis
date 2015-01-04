@@ -42,7 +42,14 @@ public class HttpInit extends AsyncTask</* param */String, /* progress */Object,
 			Global.DEVICE_THERMOSTAT =  obj.getString("DEVICE_THERMOSTAT");
 			Global.DEVICE_SMART_PLUG = obj.getString("DEVICE_SMART_PLUG");
 			
-			
+			Log.d("api", String.format("%s / %s / %s / %s / %s / %s / %s", 
+					Global.USER_ID,
+					Global.PASSWD,
+					Global.DOMAIN,
+					Global.APPKEY,
+					Global.DEVICE_DOOR_LOCK,
+					Global.DEVICE_THERMOSTAT,
+					Global.DEVICE_SMART_PLUG));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
